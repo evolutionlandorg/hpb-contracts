@@ -38,18 +38,18 @@ contract ObjectOwnership is ERC721Token("Evolution Land Objects","EVO"), DSAuth,
         emit LogSetOwner(msg.sender);
 
         // SupportsInterfaceWithLookup constructor
-        //_registerInterface(InterfaceId_ERC165);
+        _registerInterface(InterfaceId_ERC165);
 
         // ERC721BasicToken constructor
-        //_registerInterface(InterfaceId_ERC721);
-        //_registerInterface(InterfaceId_ERC721Exists);
+        _registerInterface(InterfaceId_ERC721);
+        _registerInterface(InterfaceId_ERC721Exists);
 
         // ERC721Token constructor
         name_ = "Evolution Land Objects";
         symbol_ = "EVO";    // Evolution Land Objects
         // register the supported interfaces to conform to ERC721 via ERC165
-        //_registerInterface(InterfaceId_ERC721Enumerable);
-        //_registerInterface(InterfaceId_ERC721Metadata);
+        _registerInterface(InterfaceId_ERC721Enumerable);
+        _registerInterface(InterfaceId_ERC721Metadata);
 
         registry = ISettingsRegistry(_registry);
     }

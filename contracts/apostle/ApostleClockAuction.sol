@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "../common/ERC721.sol";
 import "../common/SafeMath.sol";
@@ -6,7 +6,6 @@ import "../common/interfaces/ISettingsRegistry.sol";
 import "../common/PausableDSAuth.sol";
 import "./ApostleSettingIds.sol";
 import "./interfaces/IApostleBase.sol";
-import "../common/interfaces/ITokenUse.sol";
 
 contract ApostleClockAuction is PausableDSAuth, ApostleSettingIds {
     using SafeMath for *;
@@ -213,21 +212,11 @@ contract ApostleClockAuction is PausableDSAuth, ApostleSettingIds {
     // to invoke this function
     // @param _data - need to be generated from (tokenId + referer)
 
-    function tokenFallback(address _from, uint256 _valueInToken, bytes _data) public whenNotPaused {
-        uint tokenId;
-        address referer;
-        assembly {
-            let ptr := mload(0x40)
-            calldatacopy(ptr, 0, calldatasize)
-            tokenId := mload(add(ptr, 132))
-            referer := mload(add(ptr, 164))
-        }
-
+    function bid(uint tokenId, address referer) payable public whenNotPaused {
         // safer for users
-        require(msg.sender == tokenIdToAuction[tokenId].token);
         require(tokenIdToAuction[tokenId].startedAt > 0);
 
-        _bidWithToken(_from, tokenId, _valueInToken, referer);
+        _bidWithToken(msg.sender, tokenId, msg.value, referer);
     }
 
     // TODO: advice: offer some reward for the person who claimed

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 import "./ApostleSettingIds.sol";
 import "../common/interfaces/ISettingsRegistry.sol";
-import "./interfaces/IApostleBase.sol";
 import "./interfaces/IApostleAuction.sol";
+import "./interfaces/IApostleBase.sol";
 import "../common/ERC721.sol";
 import "../common/PausableDSAuth.sol";
 
@@ -71,14 +71,13 @@ contract Gen0Apostle is PausableDSAuth, ApostleSettingIds {
         auction.cancelAuction(_tokenId);
     }
 
-
     function setOperator(address _operator) public onlyOwner {
         operator = _operator;
     }
 
-    function tokenFallback(address _from, uint256 _value, bytes _data) public {
-        address revenuePool = registry.addressOf(CONTRACT_REVENUE_POOL);
-        revenuePool.transfer(_value);
+    function () payable public {
+        //address revenuePool = registry.addressOf(CONTRACT_REVENUE_POOL);
+        //revenuePool.transfer(msg.value);
     }
 
     // to apply for the safeTransferFrom
