@@ -2,16 +2,14 @@ pragma solidity ^0.4.24;
 
 import "../common/ERC721.sol";
 import "../common/interfaces/ISettingsRegistry.sol";
-import "../common/interfaces/IActivity.sol";
 import "../common/interfaces/IActivityObject.sol";
 import "../common/interfaces/IObjectOwnership.sol";
-import "../common/interfaces/ITokenUse.sol";
 import "../common/PausableDSAuth.sol";
 import "../common/SupportsInterfaceWithLookup.sol";
 import "./ApostleSettingIds.sol";
 import "./interfaces/IGeneScience.sol";
 
-contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject, PausableDSAuth, ApostleSettingIds{
+contract ApostleBase is SupportsInterfaceWithLookup, IActivityObject, PausableDSAuth, ApostleSettingIds{
 
     event Birth(
         address indexed owner, uint256 apostleTokenId, uint256 matronId, uint256 sireId, uint256 genes, uint256 talents, uint256 coolDownIndex, uint256 generation, uint256 birthTime
@@ -101,7 +99,6 @@ contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject,
 
         registry = ISettingsRegistry(_registry);
 
-        _registerInterface(InterfaceId_IActivity);
         _registerInterface(InterfaceId_IActivityObject);
         _updateCoolDown();
 
@@ -161,8 +158,6 @@ contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject,
     {
         require(tokenId2Apostle[_apostleId].birthTime > 0, "Apostle should exist");
 
-        require(ITokenUse(registry.addressOf(CONTRACT_TOKEN_USE)).isObjectReadyToUse(_apostleId), "Object ready to do activity");
-
         // In addition to checking the cooldownEndTime, we also need to check to see if
         // the cat has a pending birth; there can be some period of time between the end
         // of the pregnacy timer and the birth event.
@@ -202,9 +197,6 @@ contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject,
         if (aps.cooldownIndex < 13) {
             aps.cooldownIndex += 1;
         }
-
-        // address(0) meaning use by its owner or whitelisted contract
-        ITokenUse(registry.addressOf(SettingIds.CONTRACT_TOKEN_USE)).addActivity(_tokenId, address(0), aps.cooldownEndTime);
 
         return uint256(aps.cooldownEndTime);
 
@@ -356,22 +348,11 @@ contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject,
         return true;
     }
 
-    function tokenFallback(address _from, uint256 _value, bytes _data) public {
+    function breed(uint256 matronId, uint256 sireId) payable public {
         uint256 autoBirthFee = registry.uintOf(ApostleSettingIds.UINT_AUTOBIRTH_FEE);
 
-        uint matronId;
-        uint sireId;
-        uint level;
-
-        require(_value >= autoBirthFee, 'not enough to breed.');
-        registry.addressOf(CONTRACT_REVENUE_POOL).transfer(_value);
-
-        assembly {
-            let ptr := mload(0x40)
-            calldatacopy(ptr, 0, calldatasize)
-            matronId := mload(add(ptr, 132))
-            sireId := mload(add(ptr, 164))
-        }
+        require(msg.value >= autoBirthFee, 'not enough to breed.');
+        registry.addressOf(CONTRACT_REVENUE_POOL).transfer(msg.value);
 
         // All checks passed, apostle gets pregnant!
         _breedWith(matronId, sireId);
@@ -411,11 +392,6 @@ contract ApostleBase is SupportsInterfaceWithLookup, IActivity, IActivityObject,
     }
 
     function activityRemoved(uint256 _tokenId, address _activity, address _user) auth public {
-        // do nothing.
-    }
-
-    /// IActivity
-    function activityStopped(uint256 _tokenId) auth public {
         // do nothing.
     }
 
